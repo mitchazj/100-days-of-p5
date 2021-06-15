@@ -118,7 +118,7 @@ window.day1 = {
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-// DAY 1
+// DAY 2
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 window.day2 = {
@@ -134,7 +134,7 @@ window.day2 = {
   },
 
   createRandomCube: function () {
-    let _width = round(random(5, 200));
+    let _width = round((random(5, 200) * (width() / 1920)) / 2);
     return this.createCube(
       random(0, width() - _width),
       random(0, height() - _width),
