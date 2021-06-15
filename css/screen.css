@@ -1,0 +1,28 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: black;
+}
+
+canvas {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  border: 1.5px solid #212131;
+}
+
+button {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  z-index: 10;
+  transform: translateX(-50%);
+  background-color: #112151;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 12px 42px;
+  border: 0;
+  color: #7788ee;
+}
