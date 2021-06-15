@@ -1,6 +1,6 @@
 /* eslint-disable no-undef, no-unused-vars */
 
-const DAY = 1;
+const DAY = 2;
 const PADDING = 0;
 const FRAMERATE = 60;
 
@@ -123,19 +123,74 @@ window.day1 = {
 
 window.day2 = {
   // Data
-  idk: { x: 0 },
+  cubes: [],
+  cube_count: 40,
+  base_color: null,
+  lerp_color: null,
 
   // Custom methods
-  doSomething: function () {},
+  createCube: function (x, y, width, height, velX, velY, color) {
+    return { x, y, width, height, velX, velY, color };
+  },
 
-  // Core drawing
-  setup: function () {},
+  createRandomCube: function () {
+    let _width = round(random(5, 200));
+    return this.createCube(
+      random(0, width() - _width),
+      random(0, height() - _width),
+      _width,
+      _width,
+      random(-0.5, 0.5),
+      random(-0.5, 0.5),
+      color(31, 134, 181)
+    );
+  },
+
+  drawCube: function (cube) {
+    noStroke();
+    fill(cube.color);
+    rect(cube.x, cube.y, cube.width, cube.height);
+  },
+
+  moveCube: function (cube, p5) {
+    cube.x += cube.velX * p5.deltaTime;
+    cube.y += cube.velY * p5.deltaTime;
+  },
+
+  checkCollisions: function (cube) {
+    if (cube.x + cube.width > width() || cube.x < 0) {
+      cube.velX = cube.velX * -1;
+    }
+    if (cube.y + cube.height > height() || cube.y < 0) {
+      cube.velY = cube.velY * -1;
+    }
+  },
+
+  setup: function () {
+    this.base_color = color(31, 134, 181, 180);
+    this.lerp_color = color(181, 134, 31, 180);
+
+    [...new Array(this.cube_count).keys()].forEach((x) => {
+      let eyyy = this.createRandomCube();
+      eyyy.color = lerpColor(
+        this.base_color,
+        this.lerp_color,
+        x / this.cube_count
+      );
+      this.cubes.push(eyyy);
+    });
+  },
 
   draw: function (p5) {
     // Clear background
     background(13, 15, 19);
 
-    // Put drawings here
-    // fill(31, 134, 181); // lessgo
+    // Draw and move cubes.
+    for (let i = 0; i < this.cubes.length; ++i) {
+      let cube = this.cubes[i];
+      this.drawCube(cube);
+      this.moveCube(cube, p5);
+      this.checkCollisions(cube);
+    }
   }
 };
