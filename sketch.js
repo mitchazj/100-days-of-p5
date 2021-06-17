@@ -1,6 +1,6 @@
 /* eslint-disable no-undef, no-unused-vars */
 
-const DAY = 2;
+const DAY = 3; // change the day being drawn here
 const PADDING = 0;
 const FRAMERATE = 60;
 
@@ -192,5 +192,155 @@ window.day2 = {
       this.moveCube(cube, p5);
       this.checkCollisions(cube);
     }
+  }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// DAY 3
+////////////////////////////////////////////////////////////////////////////////////////////
+
+window.day3 = {
+  // Data
+  SET_COLOR: 150,
+  UNSET_COLOR: 50,
+  grid: { res_x: 60, res_y: 0, w: 0, data: [] },
+  snake: {
+    body: [{ x: 10, y: 10, direction: 1, length: 7 }],
+    state: 0
+  },
+  // 0 = up, 1 = right, 2 = down, 3 = left
+
+  // Custom methods
+  getDisplacedX: function (joint, distance = 1) {
+    return joint.direction === 1
+      ? joint.x + distance
+      : joint.direction === 3
+      ? joint.x - distance
+      : joint.x;
+  },
+
+  getDisplacedY: function (joint, distance = 1) {
+    return joint.direction === 0
+      ? joint.y - distance
+      : joint.direction === 2
+      ? joint.y + distance
+      : joint.y;
+  },
+
+  moveSnake: function (delta) {
+    this.snake.state += 0.2 * delta;
+    let lead = this.snake.body[0]; // Get the lead joint
+
+    // Are we changing direction this step? (art only for now)
+    if (floor(random(1, 4)) === 1) {
+      // lead.direction = floor(random(0, 4)); // pure random
+      lead.direction += 1;
+      if (lead.direction === 4) lead.direction = 0;
+    }
+
+    // Have we hit an edge with the leading joint?
+    if (lead.x === this.grid.res_x - 1 && lead.direction === 1) {
+      lead.direction = 2;
+    }
+    if (lead.y === this.grid.res_y - 1 && lead.direction === 2) {
+      lead.direction = 3;
+    }
+    if (lead.x === 0 && lead.direction === 3) {
+      lead.direction = 0;
+    }
+    if (lead.y === 0 && lead.direction === 0) {
+      lead.direction = 1;
+    }
+
+    // Are we moving this step?
+    if (this.snake.state > 1) {
+      lead.x = this.getDisplacedX(lead);
+      lead.y = this.getDisplacedY(lead);
+      this.snake.state = 0;
+    }
+
+    // For each joint in the snakes body
+    for (let l = 0; l < this.snake.body.length; ++l) {
+      // Get the joint
+      let joint = this.snake.body[l];
+
+      // All along the joint
+      for (let c = 0; c < joint.length; ++c) {
+        let x = this.getDisplacedX(joint, -1 * c);
+        let y = this.getDisplacedY(joint, -1 * c);
+        if (x >= 0 && x < this.grid.res_x && y >= 0 && y < this.grid.res_y) {
+          // this.grid.data[x][y] = this.SET_COLOR; // correct, but using art for now
+          if (floor(random(1, 4)) >= 2) {
+            this.grid.data[x][y] = this.SET_COLOR + this.grid.data[x][y] / 5;
+          } else {
+            this.grid.data[x][y] = this.UNSET_COLOR;
+          }
+        }
+      }
+
+      // Is this the last joint and did we move?
+      if (this.snake.state === 0 && l === this.snake.body.length - 1) {
+        // Unset the previous point
+        let x = this.getDisplacedX(joint, -1 * joint.length);
+        let y = this.getDisplacedY(joint, -1 * joint.length);
+
+        if (x >= 0 && x < this.grid.res_x && y >= 0 && y < this.grid.res_y) {
+          // this.grid.data[x][y] = this.UNSET_COLOR; // correct, but using art for now
+          this.grid.data[x][y] = this.UNSET_COLOR + this.grid.data[x][y] / 2;
+        }
+      }
+    }
+  },
+
+  // This is really bad but I hacked it together super quickly and it
+  // mostly does the job
+  locateX: function (x, y) {
+    let gap =
+      (height() - this.grid.res_y * this.grid.w) / (this.grid.res_y + 1);
+    let start_x =
+      width() / 2 -
+      (this.grid.res_x * this.grid.w + gap * (this.grid.res_x - 1)) / 2;
+    return start_x + x * (this.grid.w + gap);
+  },
+
+  locateY: function (x, y) {
+    let gap =
+      (height() - this.grid.res_y * this.grid.w) / (this.grid.res_y + 1);
+    let start_y =
+      height() / 2 -
+      (this.grid.res_y * this.grid.w + gap * (this.grid.res_y - 1)) / 2;
+    return start_y + y * (this.grid.w + gap);
+  },
+
+  // Core drawing
+  setup: function () {
+    this.grid.w = floor(width() / (this.grid.res_x + 1));
+    this.grid.res_y = floor((this.grid.res_x + 1) * (height() / width()));
+    console.log(this.grid);
+    for (let x = 0; x < this.grid.res_x; ++x) {
+      this.grid.data.push(
+        [...new Array(this.grid.res_y)].map((x) => this.UNSET_COLOR)
+      );
+    }
+    // Place snake in centre
+    this.snake.body[0].x = floor(this.grid.res_x / 2);
+    this.snake.body[0].y = floor(this.grid.res_y / 2);
+  },
+
+  draw: function (p5) {
+    // Clear background
+    background(13, 15, 19);
+
+    // Put drawings here
+    for (let x = 0; x < this.grid.res_x; ++x) {
+      for (let y = 0; y < this.grid.res_y; ++y) {
+        noStroke();
+        fill(31, 134, 181, this.grid.data[x][y]);
+        rect(this.locateX(x, y), this.locateY(x, y), this.grid.w, this.grid.w);
+      }
+    }
+
+    // Update the snake
+    this.moveSnake(p5.deltaTime);
   }
 };
