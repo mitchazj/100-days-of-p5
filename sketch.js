@@ -355,9 +355,11 @@ window.day4 = {
   UNSET_COLOR: 50,
   grid: { res_x: 10, res_y: 0, w: 0, data: [] },
   snake: {
-    body: [{ x: 8, y: 1, direction: 1, length: 8 }],
+    body: [{ x: 8, y: 1, direction: 1, length: 22 }],
     state: 0
   },
+  halt: 0,
+  haltAt: 15000,
   // 0 = up, 1 = right, 2 = down, 3 = left
 
   // Custom methods
@@ -378,7 +380,7 @@ window.day4 = {
   },
 
   jointSnake: function (x, y, direction) {
-    let new_head = { x, y, direction, length: 0 };
+    let new_head = { x, y, direction, length: 1 };
     this.snake.body.unshift(new_head);
     return this.snake.body[0];
   },
@@ -394,27 +396,31 @@ window.day4 = {
   },
 
   moveSnake: function (delta) {
-    this.snake.state += 0.0002 * delta;
+    if (this.halt < this.haltAt) this.snake.state += 0.02 * delta;
+
     let lead = this.snake.body[0]; // Get the lead joint
 
     // Are we moving this step?
     if (this.snake.state > 1) {
+      ++this.halt;
+
       // Have we hit an edge with the leading joint?
       if (lead.x === this.grid.res_x - 1 && lead.direction === 1) {
         // lead.direction = 2;
         lead = this.jointSnake(lead.x, lead.y, 2);
-      }
-      if (lead.y === this.grid.res_y - 1 && lead.direction === 2) {
+      } else if (lead.y === this.grid.res_y - 1 && lead.direction === 2) {
         // lead.direction = 3;
         lead = this.jointSnake(lead.x, lead.y, 3);
-      }
-      if (lead.x === 0 && lead.direction === 3) {
+      } else if (lead.x === 0 && lead.direction === 3) {
         // lead.direction = 0;
         lead = this.jointSnake(lead.x, lead.y, 0);
-      }
-      if (lead.y === 0 && lead.direction === 0) {
+      } else if (lead.y === 0 && lead.direction === 0) {
         // lead.direction = 1;
         lead = this.jointSnake(lead.x, lead.y, 1);
+      } else {
+        // No new lead point, so just increment the length of the
+        // lead joint.
+        ++lead.length; // Increment the lead joint
       }
 
       // Move the lead forwards
@@ -423,6 +429,7 @@ window.day4 = {
 
       // Reset state counter
       this.snake.state = 0;
+      // console.log("-----------------------------");
 
       // For each joint in the snakes body
       for (let l = 0; l < this.snake.body.length; ++l) {
@@ -432,14 +439,18 @@ window.day4 = {
         // Is this the last joint?
         if (l === this.snake.body.length - 1) {
           --joint.length; // Decrement the end joint
-          ++lead.length; // Increment the lead joint
-          console.log(`Trimmed to: ${joint.length}`);
+          // console.log(`lead length ${lead.length}`);
+          // console.log(`Trimmed to: ${joint.length}`);
         }
 
         // Foreach square along the joint, set the color
         for (let c = 0; c < joint.length; ++c) {
           this.setColorAlongJoint(joint, this.SET_COLOR, c);
         }
+
+        // console.log(
+        //   `Joint #${l + 1} is ${joint.length} long at ${joint.x}, ${joint.y}`
+        // );
 
         // Is this the last joint?
         if (l === this.snake.body.length - 1) {
@@ -448,7 +459,7 @@ window.day4 = {
 
           if (joint.length === 0) {
             // Yeet it away if the joint no longer has length
-            console.log(`>> Removed at: ${joint.length}`);
+            // console.log(`>> Removed at: ${joint.length}`);
             let dropped = this.snake.body.pop();
             // Clean up the square left behind because we'll miss it next time.
             this.setColorAlongJoint(dropped, this.UNSET_COLOR, 1);
