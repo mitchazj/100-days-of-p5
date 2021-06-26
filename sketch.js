@@ -353,9 +353,9 @@ window.day4 = {
   // Data
   SET_COLOR: 150,
   UNSET_COLOR: 50,
-  grid: { res_x: 10, res_y: 0, w: 0, data: [] },
+  grid: { res_x: 50, res_y: 0, w: 0, data: [] },
   snake: {
-    body: [{ x: 8, y: 1, direction: 1, length: 22 }],
+    body: [{ x: 8, y: 1, direction: 1, length: 128 }],
     state: 0
   },
   halt: 0,
@@ -395,7 +395,7 @@ window.day4 = {
     }
   },
 
-  moveSnake: function (delta) {
+  moveSnake: function (delta, p5) {
     if (this.halt < this.haltAt) this.snake.state += 0.02 * delta;
 
     let lead = this.snake.body[0]; // Get the lead joint
@@ -405,16 +405,28 @@ window.day4 = {
       ++this.halt;
 
       // Have we hit an edge with the leading joint?
-      if (lead.x === this.grid.res_x - 1 && lead.direction === 1) {
+      if (
+        keyIsDown(DOWN_ARROW) ||
+        (lead.x === this.grid.res_x - 1 && lead.direction === 1)
+      ) {
         // lead.direction = 2;
         lead = this.jointSnake(lead.x, lead.y, 2);
-      } else if (lead.y === this.grid.res_y - 1 && lead.direction === 2) {
+      } else if (
+        keyIsDown(LEFT_ARROW) ||
+        (lead.y === this.grid.res_y - 1 && lead.direction === 2)
+      ) {
         // lead.direction = 3;
         lead = this.jointSnake(lead.x, lead.y, 3);
-      } else if (lead.x === 0 && lead.direction === 3) {
+      } else if (
+        keyIsDown(UP_ARROW) ||
+        (lead.x === 0 && lead.direction === 3)
+      ) {
         // lead.direction = 0;
         lead = this.jointSnake(lead.x, lead.y, 0);
-      } else if (lead.y === 0 && lead.direction === 0) {
+      } else if (
+        keyIsDown(RIGHT_ARROW) ||
+        (lead.y === 0 && lead.direction === 0)
+      ) {
         // lead.direction = 1;
         lead = this.jointSnake(lead.x, lead.y, 1);
       } else {
@@ -520,6 +532,6 @@ window.day4 = {
     }
 
     // Update the snake
-    this.moveSnake(p5.deltaTime);
+    this.moveSnake(p5.deltaTime, p5);
   }
 };
